@@ -3,21 +3,13 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
-// const encrypt = require("mongoose-encryption")
-// const md5 = require("md5")
-// const bcrypt = require("bcrypt")
-// const saltRounds = 13
 const session = require("express-session")
 const passport = require("passport")
 const passportLocalMongoose = require("passport-local-mongoose")
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const findOrCreate = require("mongoose-findorcreate")
 
-
 const app = express();
-
-// console.log(process.env.SECRET);
-// console.log(md5("123"));
 
 app.use(express.static("public"));
 app.set("view engine", "ejs");
@@ -45,12 +37,9 @@ const userSchema = new mongoose.Schema({
 userSchema.plugin(passportLocalMongoose)
 userSchema.plugin(findOrCreate)
 
-// userSchema.plugin(encrypt, {secret: process.env.SECRET, encryptedFields: ["password"]})
-
 const User = new mongoose.model("User", userSchema);
 
 passport.use(User.createStrategy())
-
 
 passport.serializeUser(function(user, done) {
   done(null, user.id)  
@@ -60,14 +49,12 @@ passport.deserializeUser(function(id, done) {
   User.findById(id, function(err, user){
     done(err, user)
   })
-
 });
 
 passport.use(new GoogleStrategy({
   clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
   callbackURL: "http://localhost:3000/auth/google/secrets"
-  // userProfileURL: "https://googleapis.com/oauth2/v3/userinfo"
 },
 function(accessToken, refreshToken, profile, cb) {
   console.log(profile);
@@ -146,9 +133,6 @@ app.get("/logout", function(req, res){
     }
     res.redirect("/");
   });
-
-  // req.logout();
-  // res.redirect("/");
 });
 
 
@@ -184,52 +168,11 @@ app.post("/login", function(req,res){
   })
 })
 
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 3000;
+}
 
-
-
-
-/*
-app.post("/register", function (req, res) {
-  bcrypt.hash(req.body.password, saltRounds, function (err, hash) {
-    const newUser = new User({
-      email: req.body.username,
-      password: hash, // md5(req.body.password)
-    });
-    newUser.save(function (err) {
-      if (err) {
-        console.log(err);
-      } else {
-        res.render("secrets");
-      }
-    });
-  });
-});
-*/
-
-/*
-app.post("/login", function(req,res){
-    const username = req.body.username
-    const password = req.body.password
-
-    User.findOne({email: username}, function(err, foundUser){
-        if(err){
-            console.log(err);
-        }
-        else{
-            if (foundUser){
-                bcrypt.compare(password, foundUser.password, function(err, result) {
-                    if(result == true){
-                        res.render("secrets")
-
-                    }
-                });
-                }
-            }
-        }
-    )
-})
-*/
-
-app.listen("3000", function () {
-  console.log("Server is running on port 3000");
+app.listen(port, function () {
+  console.log("Server is running!");
 });
